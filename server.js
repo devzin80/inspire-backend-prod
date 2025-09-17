@@ -15,8 +15,8 @@ const allowedHosts = [
     'localhost',
     '127.0.0.1',
     '192.168.0.182',
-    'yourproduction.com',
-    'staging.yourdomain.com',
+    'inspire-online.com',
+   
 ]
 app.use(
     cors({
