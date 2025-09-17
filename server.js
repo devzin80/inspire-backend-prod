@@ -18,15 +18,14 @@ const cors = require('cors')
 
 // Regex to allow localhost and LAN IPs
 const corsOptions = {
-    // Now you can safely whitelist your local proxy hostname
-    origin: [
-        'http://admin-panel.local',
-        'https://inspire-online.com',
-        'https://www.inspire-online.com',
-        'http://localhost',
-        'http://192.168.68.104',
-    ],
-    credentials: true,
+    origin: (origin, callback) => {
+        // You can check a list of allowed origins here if you want to be more secure
+        // For your case with a dynamic local IP, allowing all is a practical solution.
+        // A more secure solution would be to check if the origin is a specific hostname or a pattern.
+        callback(null, true)
+    },
+    credentials: true, // This is crucial for handling cookies
+    optionsSuccessStatus: 200, // Some legacy browsers choke on 204
 }
 
 app.use(cors(corsOptions))
