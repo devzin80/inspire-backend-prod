@@ -85,6 +85,7 @@ const http = require('http');
 require('dotenv').config();
 const { connectDB } = require('./utils/db');
 const { initSocket } = require('./utils/socket');
+const cookieParser = require('cookie-parser');
 
 const app = express();
 const port = process.env.PORT || 6535;
@@ -104,6 +105,7 @@ const corsOptions = {
     optionsSuccessStatus: 200,
 };
 app.use(cors(corsOptions));
+app.use(cookieParser())
 
 // Routes
 app.use('/api/v1/users', require('./routes/user.route'));
