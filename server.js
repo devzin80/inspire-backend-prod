@@ -17,38 +17,12 @@ const cors = require('cors')
 
 
 // Regex to allow localhost and LAN IPs
-const localOriginRegex =
-    /^https?:\/\/(localhost|127\.0\.0\.1|192\.168\.\d{1,3}\.\d{1,3})(:\d+)?$/
+const corsOptions = {
+    origin: true,
+    credentials: true,
+}
 
-// Whitelist your production domain(s)
-const productionDomains = [
-    'https://inspire-online.com',
-    'https://www.inspire-online.com',
-]
-
-app.use(
-    cors({
-        origin: (origin, callback) => {
-            // Allow requests with no origin (Postman, curl, mobile apps)
-            if (!origin) return callback(null, true)
-
-            // Allow localhost / LAN dynamically
-            if (localOriginRegex.test(origin)) {
-                return callback(null, origin)
-            }
-
-            // Allow production domains
-            if (productionDomains.includes(origin)) {
-                return callback(null, origin)
-            }
-
-            // Block other origins
-            return callback(new Error(`CORS policy: ${origin} is not allowed`))
-        },
-        credentials: true, // ✅ allows cookies and auth headers
-        optionsSuccessStatus: 200,
-    }),
-)
+app.use(cors(corsOptions))
 
 // app.use(cors(
 // ))
