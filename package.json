@@ -1,0 +1,25 @@
+{
+  "name": "inspire-backend",
+  "version": "1.0.0",
+  "description": "Smart LMS Solution From 24x7soft.com with hybrid system",
+  "keywords": [
+    "Inspire-LMS"
+  ],
+  "license": "ISC",
+  "author": "Monjurul Islam Rommel (Owner)",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "dev": "node --watch --watch-preserve-output server.js"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.17.0",
+    "socket.io": "^4.8.1"
+  }
+}
