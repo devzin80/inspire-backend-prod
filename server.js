@@ -19,7 +19,13 @@ const cors = require('cors')
 // Regex to allow localhost and LAN IPs
 const corsOptions = {
     // Now you can safely whitelist your local proxy hostname
-    origin: ['http://admin-panel.local', 'https://inspire-online.com','https://www.inspire-online.com'],
+    origin: [
+        'http://admin-panel.local',
+        'https://inspire-online.com',
+        'https://www.inspire-online.com',
+        'http://localhost',
+        'http://192.168.68.104',
+    ],
     credentials: true,
 }
 
