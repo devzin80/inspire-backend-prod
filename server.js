@@ -97,15 +97,18 @@ app.use(express.urlencoded({ extended: true }));
 // CORS configuration
 const corsOptions = {
     origin: (origin, callback) => {
-        // Allow requests with no origin (like Postman) or from dynamic IPs
-        if (!origin) return callback(null, true);
-        callback(null, origin);
+        // Allow requests with no origin (like Postman) or from any origin
+        if (!origin) return callback(null, true)
+        return callback(null, true) // allow all origins dynamically
     },
     credentials: true, // allow cookies
-    optionsSuccessStatus: 200,
-};
-app.use(cors(corsOptions));
-app.use(cookieParser())
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+}
+
+app.use(cors(corsOptions))
+app.options('*', cors(corsOptions))
+// app.use(cookieParser())
 
 // Routes
 app.use('/api/v1/users', require('./routes/user.route'));
