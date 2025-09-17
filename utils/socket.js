@@ -1,37 +1,30 @@
 const { Server } = require('socket.io')
 
-let io
-
 function initSocket(server) {
-    io = new Server(server, {
+    const io = new Server(server, {
         cors: {
-            origin: ['http://localhost:3000', 'http://localhost:3001'], // your User + Admin panels
-            methods: ['GET', 'POST', 'PATCH'],
+            origin: (origin, callback) => {
+                if (!origin) return callback(null, true)
+                return callback(null, true) // dynamic origin
+            },
+            credentials: true,
         },
     })
 
     io.on('connection', (socket) => {
-        console.log('✅ Socket connected:', socket.id)
+        console.log('New client connected:', socket.id)
 
-        // User joins class room
-        socket.on('joinClass', (classId) => {
-            socket.join(classId)
-            console.log(`📚 User ${socket.id} joined class ${classId}`)
+        socket.on('message', (data) => {
+            console.log('Message received:', data)
+            socket.emit('message', `Server received: ${data}`)
         })
 
         socket.on('disconnect', () => {
-            console.log('❌ Socket disconnected:', socket.id)
+            console.log('Client disconnected:', socket.id)
         })
     })
 
     return io
 }
 
-function getIo() {
-    if (!io) {
-        throw new Error('❌ Socket.io not initialized!')
-    }
-    return io
-}
-
-module.exports = { initSocket, getIo }
+module.exports = { initSocket }
