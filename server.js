@@ -11,31 +11,42 @@ const port = process.env.PORT || 6535
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
-const allowedHosts = [
-    'localhost',
-    '127.0.0.1',
-    '192.168.0.182',
-    'inspire-online.com',
-   
+const express = require('express')
+const cors = require('cors')
+
+
+
+// Regex to allow localhost and LAN IPs
+const localOriginRegex =
+    /^https?:\/\/(localhost|127\.0\.0\.1|192\.168\.\d{1,3}\.\d{1,3})(:\d+)?$/
+
+// Whitelist your production domain(s)
+const productionDomains = [
+    'https://inspire-online.com',
+    'https://www.inspire-online.com',
 ]
+
 app.use(
     cors({
         origin: (origin, callback) => {
-            if (!origin) return callback(null, true) // allow Postman / mobile apps
+            // Allow requests with no origin (Postman, curl, mobile apps)
+            if (!origin) return callback(null, true)
 
-            try {
-                const url = new URL(origin)
-                if (allowedHosts.includes(url.hostname)) {
-                    return callback(null, true)
-                }
-                return callback(
-                    new Error(`CORS policy: ${origin} is not allowed`),
-                )
-            } catch (err) {
-                return callback(new Error(`Invalid origin: ${origin}`))
+            // Allow localhost / LAN dynamically
+            if (localOriginRegex.test(origin)) {
+                return callback(null, origin)
             }
+
+            // Allow production domains
+            if (productionDomains.includes(origin)) {
+                return callback(null, origin)
+            }
+
+            // Block other origins
+            return callback(new Error(`CORS policy: ${origin} is not allowed`))
         },
-        credentials: true, // ✅ allows cookies
+        credentials: true, // ✅ allows cookies and auth headers
+        optionsSuccessStatus: 200,
     }),
 )
 
