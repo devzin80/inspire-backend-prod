@@ -15,19 +15,23 @@ app.use(express.urlencoded({ extended: true }))
 // app.use(cookieParser()); // uncomment if using cookies
 
 // ✅ Dynamic CORS + preflight middleware
+const allowedOrigins = [
+    'http://192.168.68.104', // admin panel local dev
+    'https://inspire-online.com',  // user panel production
+    'http://localhost'
+]
+
 app.use((req, res, next) => {
     const origin = req.headers.origin
-    if (!origin) {
-        res.header('Access-Control-Allow-Origin', '*') // allow requests with no origin (Postman / server-to-server)
-    } else {
-        res.header('Access-Control-Allow-Origin', origin) // dynamic origin
+    if (allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin)
     }
-    res.header('Access-Control-Allow-Credentials', 'true')
-    res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
-    res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    res.setHeader('Access-Control-Allow-Credentials', 'true')
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization')
 
     if (req.method === 'OPTIONS') {
-        return res.sendStatus(200) // handle preflight
+        return res.sendStatus(200)
     }
 
     next()
