@@ -26,13 +26,14 @@ const allowedOrigins = [
 
 // also allow dynamic LAN IPs (192.x.x.x or 10.x.x.x)
 function isAllowed(origin) {
-    if (!origin) return false
+    if (!origin) return true // allow requests with no Origin (Postman, direct browser hits)
     if (allowedOrigins.includes(origin)) return true
     if (/^http:\/\/192\.168\.\d+\.\d+(:\d+)?$/.test(origin)) return true
     if (/^http:\/\/10\.\d+\.\d+\.\d+(:\d+)?$/.test(origin)) return true
     return false
 }
 
+// Apply CORS
 app.use(
     cors({
         origin: (origin, cb) => {
@@ -43,8 +44,10 @@ app.use(
             }
         },
         credentials: true, // allow cookies
+        optionsSuccessStatus: 204, // handle preflight OPTIONS requests
     }),
 )
+
 app.set('trust proxy', 1)
 
 
