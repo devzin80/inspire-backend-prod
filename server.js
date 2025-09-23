@@ -33,37 +33,42 @@ const allowedOrigins = [
 ]
 
 function isAllowed(origin) {
-    if (!origin) return true // Postman or server-side calls
+    if (!origin) return true // server-to-server or Postman
     try {
         const url = new URL(origin)
-
         if (url.hostname === 'localhost' || url.hostname.startsWith('127.'))
             return true
         if (/^192\.168\.\d+\.\d+$/.test(url.hostname)) return true
         if (/^10\.\d+\.\d+\.\d+$/.test(url.hostname)) return true
         if (allowedOrigins.includes(origin)) return true
-
         return false
-    } catch (e) {
+    } catch {
         return false
     }
 }
 
+// Apply CORS
 app.use(
     cors({
-        origin: (origin, cb) => {
-            if (isAllowed(origin)) cb(null, true)
-            else cb(new Error('CORS not allowed')) // ❌ important: throw error instead of returning false
+        origin: (origin, callback) => {
+            if (isAllowed(origin)) {
+                callback(null, true) // allow
+            } else {
+                // respond with proper 403 instead of breaking the router
+                callback(new Error('Not allowed by CORS'))
+            }
         },
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization'],
+        preflightContinue: false,
         optionsSuccessStatus: 204,
     }),
 )
 
-// handle preflight globally
+// Ensure all OPTIONS requests respond
 app.options('*', cors())
+
 
 
 
