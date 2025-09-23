@@ -37,15 +37,10 @@ function isAllowed(origin) {
     try {
         const url = new URL(origin)
 
-        // Allow localhost or 127.x.x.x with any port
         if (url.hostname === 'localhost' || url.hostname.startsWith('127.'))
             return true
-
-        // Allow LAN IPs 192.168.x.x or 10.x.x.x
         if (/^192\.168\.\d+\.\d+$/.test(url.hostname)) return true
         if (/^10\.\d+\.\d+\.\d+$/.test(url.hostname)) return true
-
-        // Allow production domains
         if (allowedOrigins.includes(origin)) return true
 
         return false
@@ -56,25 +51,20 @@ function isAllowed(origin) {
 
 app.use(
     cors({
-        origin: (origin, callback) => {
-            if (isAllowed(origin)) {
-                callback(null, true) // allow
-            } else {
-                callback(new Error('CORS not allowed')) // explicitly deny
-            }
+        origin: (origin, cb) => {
+            if (isAllowed(origin)) cb(null, true)
+            else cb(new Error('CORS not allowed')) // ❌ important: throw error instead of returning false
         },
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization'],
-        preflightContinue: false,
         optionsSuccessStatus: 204,
     }),
 )
 
-// Handle all preflight OPTIONS requests
+// handle preflight globally
 app.options('*', cors())
 
-app.set('trust proxy', 1)
 
 
 // Apply CORS
