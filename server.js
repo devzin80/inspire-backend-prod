@@ -1,11 +1,9 @@
-// server.js
 const express = require('express')
 const http = require('http')
 const cors = require('cors')
 require('dotenv').config()
 const { connectDB } = require('./utils/db')
 const { initSocket } = require('./utils/socket')
-// const cookieParser = require('cookie-parser');
 
 const app = express()
 const port = process.env.PORT || 6535
@@ -13,18 +11,6 @@ const port = process.env.PORT || 6535
 // Middleware
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
-// app.use(cookieParser()); // uncomment if using cookies
-
-// ✅ Dynamic CORS + preflight middleware
-
-// also allow dynamic LAN IPs (192.x.x.x or 10.x.x.x)
-// function isAllowed(origin) {
-//     if (!origin) return true // allow requests with no Origin (Postman, direct browser hits)
-//     if (allowedOrigins.includes(origin)) return true
-//     if (/^http:\/\/192\.168\.\d+\.\d+(:\d+)?$/.test(origin)) return true
-//     if (/^http:\/\/10\.\d+\.\d+\.\d+(:\d+)?$/.test(origin)) return true
-//     return false
-// }
 
 const allowedOrigins = [
     'https://inspire-online.com',
@@ -33,7 +19,7 @@ const allowedOrigins = [
 ]
 
 function isAllowed(origin) {
-    if (!origin) return true // server-to-server or Postman
+    if (!origin) return true
     try {
         const url = new URL(origin)
         if (url.hostname === 'localhost' || url.hostname.startsWith('127.'))
@@ -52,40 +38,20 @@ app.use(
     cors({
         origin: (origin, callback) => {
             if (isAllowed(origin)) {
-                callback(null, true) // allow
+                callback(null, true)
             } else {
-                // respond with proper 403 instead of breaking the router
                 callback(new Error('Not allowed by CORS'))
             }
         },
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization'],
-        preflightContinue: false,
         optionsSuccessStatus: 204,
     }),
 )
 
-// Ensure all OPTIONS requests respond
+// Ensure OPTIONS requests are handled
 app.options('*', cors())
-
-
-
-
-// Apply CORS
-// app.use(
-//     cors({
-//         origin: (origin, cb) => {
-//             if (isAllowed(origin)) {
-//                 cb(null, true)
-//             } else {
-//                 cb(new Error('CORS not allowed'))
-//             }
-//         },
-//         credentials: true, // allow cookies
-//         optionsSuccessStatus: 204, // handle preflight OPTIONS requests
-//     }),
-// )
 
 // Routes
 app.use('/api/v1/users', require('./routes/user.route'))
@@ -115,29 +81,29 @@ app.use('/api/v1/notification', require('./routes/notification.route'))
 app.get('/', (req, res) => {
     res.send('Inspire-Online.com - Your Online Inspiration Hub')
 })
+
+// Catch-all route (Express v5 safe)
+app.all('/*', (req, res) => {
+    res.status(404).send('Not Found')
+})
 ;(async () => {
     try {
         await connectDB()
-        console.log('Database connected successfully.')
+        console.log('✅ Database connected successfully.')
 
-        // Create HTTP server for Socket.IO
         const server = http.createServer(app)
-
-        // Initialize Socket.IO with dynamic CORS
         const io = initSocket(server)
 
-        // Make io accessible in routes if needed
         app.use((req, res, next) => {
             req.io = io
             next()
         })
 
-        // Listen on all interfaces for Nginx proxy
         server.listen(port, '0.0.0.0', () => {
-            console.log(`Server is running at http://0.0.0.0:${port}`)
+            console.log(`🚀 Server running at http://0.0.0.0:${port}`)
         })
     } catch (err) {
-        console.error('Failed to start server:', err)
+        console.error('❌ Failed to start server:', err)
         process.exit(1)
     }
 })()
