@@ -16,40 +16,81 @@ app.use(express.urlencoded({ extended: true }))
 // app.use(cookieParser()); // uncomment if using cookies
 
 // ✅ Dynamic CORS + preflight middleware
+
+// also allow dynamic LAN IPs (192.x.x.x or 10.x.x.x)
+// function isAllowed(origin) {
+//     if (!origin) return true // allow requests with no Origin (Postman, direct browser hits)
+//     if (allowedOrigins.includes(origin)) return true
+//     if (/^http:\/\/192\.168\.\d+\.\d+(:\d+)?$/.test(origin)) return true
+//     if (/^http:\/\/10\.\d+\.\d+\.\d+(:\d+)?$/.test(origin)) return true
+//     return false
+// }
+
 const allowedOrigins = [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    'https://inspire-online.com', // user panel in prod
-    'https://www.inspire-online.com', // user panel in prod
+    'https://inspire-online.com',
+    'https://www.inspire-online.com',
     'https://services.inspire-online.com',
 ]
 
-// also allow dynamic LAN IPs (192.x.x.x or 10.x.x.x)
 function isAllowed(origin) {
-    if (!origin) return true // allow requests with no Origin (Postman, direct browser hits)
-    if (allowedOrigins.includes(origin)) return true
-    if (/^http:\/\/192\.168\.\d+\.\d+(:\d+)?$/.test(origin)) return true
-    if (/^http:\/\/10\.\d+\.\d+\.\d+(:\d+)?$/.test(origin)) return true
-    return false
+    if (!origin) return true // Postman or server-side calls
+    try {
+        const url = new URL(origin)
+
+        // Allow localhost or 127.x.x.x with any port
+        if (url.hostname === 'localhost' || url.hostname.startsWith('127.'))
+            return true
+
+        // Allow LAN IPs 192.168.x.x or 10.x.x.x
+        if (/^192\.168\.\d+\.\d+$/.test(url.hostname)) return true
+        if (/^10\.\d+\.\d+\.\d+$/.test(url.hostname)) return true
+
+        // Allow production domains
+        if (allowedOrigins.includes(origin)) return true
+
+        return false
+    } catch (e) {
+        return false
+    }
 }
 
-// Apply CORS
 app.use(
     cors({
-        origin: (origin, cb) => {
+        origin: (origin, callback) => {
             if (isAllowed(origin)) {
-                cb(null, true)
+                callback(null, true) // allow
             } else {
-                cb(new Error('CORS not allowed'))
+                callback(new Error('CORS not allowed')) // explicitly deny
             }
         },
-        credentials: true, // allow cookies
-        optionsSuccessStatus: 204, // handle preflight OPTIONS requests
+        credentials: true,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
+        preflightContinue: false,
+        optionsSuccessStatus: 204,
     }),
 )
 
+// Handle all preflight OPTIONS requests
+app.options('*', cors())
+
 app.set('trust proxy', 1)
 
+
+// Apply CORS
+// app.use(
+//     cors({
+//         origin: (origin, cb) => {
+//             if (isAllowed(origin)) {
+//                 cb(null, true)
+//             } else {
+//                 cb(new Error('CORS not allowed'))
+//             }
+//         },
+//         credentials: true, // allow cookies
+//         optionsSuccessStatus: 204, // handle preflight OPTIONS requests
+//     }),
+// )
 
 // Routes
 app.use('/api/v1/users', require('./routes/user.route'))
