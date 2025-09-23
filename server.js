@@ -16,26 +16,32 @@ app.use(express.urlencoded({ extended: true }))
 
 // ✅ Dynamic CORS + preflight middleware
 const allowedOrigins = [
-    'http://192.168.68.104', // admin panel local dev
-    'https://inspire-online.com',  // user panel production
-    'http://localhost'
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'https://inspire-online.com', // user panel in prod
 ]
 
-app.use((req, res, next) => {
-    const origin = req.headers.origin
-    if (allowedOrigins.includes(origin)) {
-        res.setHeader('Access-Control-Allow-Origin', origin)
-    }
-    res.setHeader('Access-Control-Allow-Credentials', 'true')
-    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+// also allow dynamic LAN IPs (192.x.x.x or 10.x.x.x)
+function isAllowed(origin) {
+    if (!origin) return false
+    if (allowedOrigins.includes(origin)) return true
+    if (/^http:\/\/192\.168\.\d+\.\d+(:\d+)?$/.test(origin)) return true
+    if (/^http:\/\/10\.\d+\.\d+\.\d+(:\d+)?$/.test(origin)) return true
+    return false
+}
 
-    if (req.method === 'OPTIONS') {
-        return res.sendStatus(200)
-    }
-
-    next()
-})
+app.use(
+    cors({
+        origin: (origin, cb) => {
+            if (isAllowed(origin)) {
+                cb(null, true)
+            } else {
+                cb(new Error('CORS not allowed'))
+            }
+        },
+        credentials: true, // allow cookies
+    }),
+)
 
 // Routes
 app.use('/api/v1/users', require('./routes/user.route'))
@@ -65,8 +71,6 @@ app.use('/api/v1/notification', require('./routes/notification.route'))
 app.get('/', (req, res) => {
     res.send('Inspire-Online.com - Your Online Inspiration Hub')
 })
-
-// Start server after DB connection
 ;(async () => {
     try {
         await connectDB()
