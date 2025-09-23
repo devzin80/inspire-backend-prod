@@ -1,6 +1,7 @@
 // server.js
 const express = require('express')
 const http = require('http')
+const cors = require('cors')
 require('dotenv').config()
 const { connectDB } = require('./utils/db')
 const { initSocket } = require('./utils/socket')
