@@ -20,6 +20,7 @@ const allowedOrigins = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
     'https://inspire-online.com', // user panel in prod
+    'https://services.inspire-online.com',
 ]
 
 // also allow dynamic LAN IPs (192.x.x.x or 10.x.x.x)
