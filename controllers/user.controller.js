@@ -212,7 +212,7 @@ exports.createUser = async (req, res) => {
         res.cookie('user', populatedUser._id, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
+            sameSite: 'None',
             maxAge: 30 * 60 * 60 * 1000, // 30 day
         })
         res.header('Access-Control-Allow-Credentials', 'true')
@@ -316,7 +316,7 @@ exports.loginUser = async (req, res) => {
         res.cookie('user', 'admin', {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
+            sameSite: 'None',
             maxAge: 24 * 60 * 60 * 1000, // 1 day
         })
         res.header('Access-Control-Allow-Credentials', 'true')
@@ -352,7 +352,7 @@ exports.loginAdminUser = async (req, res) => {
         res.cookie('user', 'admin', {
             httpOnly: true,
             secure: false,
-            sameSite: 'lax',
+            sameSite: 'None',
             maxAge: 24 * 60 * 60 * 1000, // 1 day
         })
         res.header('Access-Control-Allow-Credentials', 'true')
