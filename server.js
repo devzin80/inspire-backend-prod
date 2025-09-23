@@ -20,6 +20,7 @@ const allowedOrigins = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
     'https://inspire-online.com', // user panel in prod
+    'https://www.inspire-online.com', // user panel in prod
     'https://services.inspire-online.com',
 ]
 
@@ -44,6 +45,8 @@ app.use(
         credentials: true, // allow cookies
     }),
 )
+app.set('trust proxy', 1)
+
 
 // Routes
 app.use('/api/v1/users', require('./routes/user.route'))
