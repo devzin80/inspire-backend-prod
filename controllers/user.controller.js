@@ -2,9 +2,8 @@ const Otp = require('../models/otp.model')
 const User = require('../models/user.model')
 const bcrypt = require('bcrypt')
 const crypto = require('crypto')
+const { signToken } = require('../utils/jwt')
 require('dotenv').config()
-
-
 
 function generateUsername() {
     const prefix = 'IO-User'
@@ -161,14 +160,11 @@ exports.verifyOtp = async (req, res) => {
 //             })
 //         }
 //       const populatedUser = User.findById(newUser._id).populate({path:'class',select:'title'})
-        
+
 //         res.status(200).json({
 //             success: true,
 //             populatedUser,
 //         })
-
-
-
 
 //     } catch (error) {
 //         res.status(500).json({
@@ -191,14 +187,14 @@ exports.createUser = async (req, res) => {
 
         // hash password
         const encryptedPass = await bcrypt.hash(password, 10)
-        const userName =  generateUsername()
+        const userName = generateUsername()
 
         // create + save user (instead of User.create)
         const userDoc = new User({
             phoneNumber: phone,
             class: SelectedClass,
             password: encryptedPass,
-            username:userName,
+            username: userName,
             isVerified: true,
         })
 
@@ -209,17 +205,16 @@ exports.createUser = async (req, res) => {
             path: 'class',
             select: 'title',
         })
-        res.cookie('user', populatedUser._id, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'None',
-            maxAge: 30 * 60 * 60 * 1000, // 30 day
-        })
-        res.header('Access-Control-Allow-Credentials', 'true')
+
+        const token = signToken(
+            { id: populatedUser._id, role: populatedUser.role },
+            '15d',
+        )
 
         return res.status(201).json({
             success: true,
             user: populatedUser,
+            token,
         })
     } catch (error) {
         console.error('Error creating user:', error)
@@ -313,16 +308,19 @@ exports.loginUser = async (req, res) => {
             return res.status(401).json({ message: 'False Flag' })
         }
 
-        res.cookie('user', 'admin', {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'None',
-            maxAge: 24 * 60 * 60 * 1000, // 1 day
-        })
-        res.header('Access-Control-Allow-Credentials', 'true')
+        // res.cookie('user', 'admin', {
+        //     httpOnly: true,
+        //     secure: process.env.NODE_ENV === 'production',
+        //     sameSite: 'None',
+        //     maxAge: 24 * 60 * 60 * 1000, // 1 day
+        // })
+        // res.header('Access-Control-Allow-Credentials', 'true')
+
+        const token = signToken({ id: user._id, role: user.role }, '15d')
         res.status(200).json({
             message: 'user logged in successfully',
             user,
+            token,
         })
     } catch (error) {
         res.status(500).json({
@@ -349,16 +347,11 @@ exports.loginAdminUser = async (req, res) => {
         if (!isPasswordValid) {
             return res.status(401).json({ message: 'Invalid password' })
         }
-        res.cookie('user', 'admin', {
-            httpOnly: true,
-            secure: false,
-            sameSite: 'None',
-            maxAge: 24 * 60 * 60 * 1000, // 1 day
-        })
-        res.header('Access-Control-Allow-Credentials', 'true')
+        const token = signToken({ id: user._id, role: user.role }, '60d')
         res.status(200).json({
             message: 'Admin user logged in successfully',
             user,
+            token,
         })
     } catch (error) {
         res.status(500).json({
